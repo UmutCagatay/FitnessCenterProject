@@ -19,6 +19,7 @@ namespace FitnessCenterProject.Controllers
             return View(services);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
