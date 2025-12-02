@@ -25,6 +25,6 @@ namespace FitnessCenterProject.Models
         [Display(Name = "Hizmet Resmi")]
         public string? ImageUrl { get; set; }
 
-        public virtual ICollection<TrainerService> TrainerServices { get; set; }
+        public virtual ICollection<TrainerService>? TrainerServices { get; set; }
     }
 }

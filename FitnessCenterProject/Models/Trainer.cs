@@ -20,6 +20,6 @@ namespace FitnessCenterProject.Models
         [Display(Name = "Fotoğraf")]
         public string? ImageUrl { get; set; }
 
-        public virtual ICollection<TrainerService> TrainerServices { get; set; }
+        public virtual ICollection<TrainerService>? TrainerServices { get; set; }
     }
 }
