@@ -1,6 +1,7 @@
-using System.Diagnostics;
-using FitnessCenterProject.Models;
+﻿using FitnessCenterProject.Models;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace FitnessCenterProject.Controllers
 {
@@ -26,7 +27,17 @@ namespace FitnessCenterProject.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var exceptionHandlerPathFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
+
+            var errorMessage = exceptionHandlerPathFeature?.Error.Message ?? "Bilinmeyen bir hata oluştu.";
+
+            var errorViewModel = new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                ErrorMessage = errorMessage
+            };
+
+            return View(errorViewModel);
         }
     }
 }

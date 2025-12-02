@@ -32,13 +32,18 @@ namespace FitnessCenterProject.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(service);
-
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(service);
+            var errorMessages = ModelState.Values
+                                          .SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+
+            var fullErrorText = string.Join(" | ", errorMessages);
+
+            throw new Exception("Validasyon Hatası Yakalandı: " + fullErrorText);
         }
     }
 }
