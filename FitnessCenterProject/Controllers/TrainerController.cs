@@ -134,7 +134,7 @@ namespace FitnessCenterProject.Controllers
             var trainer = await _context.Trainers.FindAsync(id);
             if (trainer != null)
             {
-                // Önce resmi klasörden sil
+
                 if (trainer.ImageUrl != null)
                 {
                     string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", trainer.ImageUrl);
@@ -144,7 +144,7 @@ namespace FitnessCenterProject.Controllers
                     }
                 }
 
-                // Sonra kaydı veritabanından sil
+
                 _context.Trainers.Remove(trainer);
                 await _context.SaveChangesAsync();
             }
