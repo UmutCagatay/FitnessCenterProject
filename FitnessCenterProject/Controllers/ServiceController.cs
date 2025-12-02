@@ -18,5 +18,26 @@ namespace FitnessCenterProject.Controllers
             var services = await _context.Services.ToListAsync();
             return View(services);
         }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Service service)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(service);
+
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(service);
+        }
     }
 }
