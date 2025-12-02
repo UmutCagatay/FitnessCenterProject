@@ -1,0 +1,25 @@
+﻿@model FitnessCenterProject.Models.Service
+
+@{
+    ViewData["Title"] = "Sil";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h3>Silmek istediğine emin misin?</h3>
+        <p><strong>@Model.Name</strong> hizmeti kalıcı olarak silinecek.</p>
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-2">Süre</dt>
+        <dd class="col-sm-10">@Model.Duration dk</dd>
+        <dt class="col-sm-2">Ücret</dt>
+        <dd class="col-sm-10">@Model.Price ₺</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Evet, Sil</button>
+        <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+    </form>
+</div>
