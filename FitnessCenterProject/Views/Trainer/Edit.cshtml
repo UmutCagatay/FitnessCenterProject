@@ -41,6 +41,33 @@
                             <small class="text-muted">Değiştirmek istemiyorsanız boş bırakın.</small>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Verebildiği Hizmetler</label>
+                            <div class="card p-3 bg-light">
+                                <div class="row">
+                                    @foreach (var service in ViewBag.Services as List<FitnessCenterProject.Models.Service>)
+                                    {
+                                        bool isChecked = Model.TrainerServices != null &&
+                                        Model.TrainerServices.Any(ts => ts.ServiceId == service.Id);
+
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="selectedServices"
+                                                       value="@service.Id"
+                                                       id="service_@service.Id"
+                                                       @(isChecked ? "checked" : "")>
+
+                                                <label class="form-check-label" for="service_@service.Id">
+                                                    @service.Name
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-warning">Güncelle</button>
                             <a asp-action="Index" class="btn btn-secondary">İptal</a>

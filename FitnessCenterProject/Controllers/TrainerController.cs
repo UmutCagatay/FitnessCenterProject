@@ -59,15 +59,21 @@ namespace FitnessCenterProject.Controllers
         {
             if (id == null) return NotFound();
 
-            var trainer = await _context.Trainers.FindAsync(id);
+            var trainer = await _context.Trainers
+                                        .Include(t => t.TrainerServices)
+                                        .FirstOrDefaultAsync(x => x.Id == id);
+
             if (trainer == null) return NotFound();
+
+            ViewBag.Services = await _context.Services.ToListAsync();
 
             return View(trainer);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file)
+        // selectedServices: Formdaki checkboxlardan gelen ID listesi
+        public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[] selectedServices)
         {
             if (id != trainer.Id) return NotFound();
 
@@ -75,19 +81,29 @@ namespace FitnessCenterProject.Controllers
             {
                 try
                 {
+                    // --- 1. Veritabanındaki "Gerçek" Eğitmeni ve İlişkilerini Çek ---
+                    // AsNoTracking KULLANMIYORUZ çünkü değişiklikleri takip edip kaydetmesini istiyoruz.
+                    var existingTrainer = await _context.Trainers
+                                                        .Include(t => t.TrainerServices)
+                                                        .FirstOrDefaultAsync(t => t.Id == id);
+
+                    if (existingTrainer == null) return NotFound();
+
+                    // --- 2. Temel Bilgileri Güncelle ---
+                    existingTrainer.FullName = trainer.FullName;
+                    existingTrainer.Specialization = trainer.Specialization;
+
+                    // --- 3. Resim İşlemleri (Aynı Mantık) ---
                     if (file != null)
                     {
-                        var oldTrainer = await _context.Trainers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-
-                        if (oldTrainer?.ImageUrl != null)
+                        // Eski resmi sil
+                        if (existingTrainer.ImageUrl != null)
                         {
-                            string oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", oldTrainer.ImageUrl);
-                            if (System.IO.File.Exists(oldPath))
-                            {
-                                System.IO.File.Delete(oldPath);
-                            }
+                            string oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", existingTrainer.ImageUrl);
+                            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                         }
 
+                        // Yeni resmi yükle
                         string extension = Path.GetExtension(file.FileName);
                         string uniqueFileName = Guid.NewGuid().ToString() + extension;
                         string newPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", uniqueFileName);
@@ -96,16 +112,32 @@ namespace FitnessCenterProject.Controllers
                         {
                             await file.CopyToAsync(stream);
                         }
+                        existingTrainer.ImageUrl = uniqueFileName;
+                    }
 
-                        trainer.ImageUrl = uniqueFileName;
+                    // --- 4. HİZMET EŞLEŞTİRME (EN ÖNEMLİ KISIM) ---
+                    // A) Mevcut ilişkilerin hepsini temizle (Reset atıyoruz)
+                    if (existingTrainer.TrainerServices != null)
+                    {
+                        existingTrainer.TrainerServices.Clear();
                     }
                     else
                     {
-                        var oldTrainer = await _context.Trainers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-                        trainer.ImageUrl = oldTrainer?.ImageUrl;
+                        existingTrainer.TrainerServices = new List<TrainerService>();
                     }
 
-                    _context.Update(trainer);
+                    // B) Seçilen yeni kutucukları ekle
+                    foreach (var serviceId in selectedServices)
+                    {
+                        existingTrainer.TrainerServices.Add(new TrainerService
+                        {
+                            TrainerId = existingTrainer.Id,
+                            ServiceId = serviceId
+                        });
+                    }
+
+                    // --- 5. Kaydet ---
+                    _context.Update(existingTrainer);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
