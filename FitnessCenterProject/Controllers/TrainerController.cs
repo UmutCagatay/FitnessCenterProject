@@ -24,5 +24,34 @@ namespace FitnessCenterProject.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Trainer trainer, IFormFile? file)
+        {
+            if (ModelState.IsValid)
+            {
+                if (file != null)
+                {
+                    string extension = Path.GetExtension(file.FileName);
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + extension;
+
+                    string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", uniqueFileName);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    trainer.ImageUrl = uniqueFileName;
+                }
+
+                _context.Add(trainer);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(trainer);
+        }
     }
 }
