@@ -4,60 +4,32 @@
     ViewData["Title"] = "Hizmeti Düzenle";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0">Hizmeti Düzenle</h4>
-                </div>
-                <div class="card-body">
+<div class="container mt-4">
+    <h2>Hizmeti Düzenle</h2>
+    <hr />
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
 
-                    <form asp-action="Edit" method="post">
-
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        <input type="hidden" asp-for="Id" />
-
-                        <div class="mb-3">
-                            <label asp-for="Name" class="form-label"></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Duration" class="form-label"></label>
-                                <input asp-for="Duration" class="form-control" />
-                                <span asp-validation-for="Duration" class="text-danger"></span>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Price" class="form-label"></label>
-                                <input asp-for="Price" class="form-control" />
-                                <span asp-validation-for="Price" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ImageUrl" class="form-label"></label>
-                            <input asp-for="ImageUrl" class="form-control" />
-                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning">Güncelle</button>
-                            <a asp-action="Index" class="btn btn-secondary">İptal</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Hizmet Adı</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
         </div>
-    </div>
+        <div class="mb-3">
+            <label asp-for="Duration" class="form-label">Süre (Dakika)</label>
+            <input asp-for="Duration" class="form-control" />
+            <span asp-validation-for="Duration" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Price" class="form-label">Ücret (TL)</label>
+            <input asp-for="Price" class="form-control" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="ImageUrl" class="form-label">Resim Linki</label>
+            <input asp-for="ImageUrl" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

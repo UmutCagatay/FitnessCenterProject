@@ -1,46 +1,25 @@
 ﻿@model FitnessCenterProject.Models.Trainer
 
 @{
-    ViewData["Title"] = "Eğitmen Sil";
+    ViewData["Title"] = "Sil";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card border-danger shadow">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0">Eğitmeni Silmek İstediğine Emin Misin?</h4>
-                </div>
-                <div class="card-body text-center">
-
-                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                    {
-                        <img src="/images/trainers/@Model.ImageUrl" class="rounded-circle img-thumbnail mb-3" width="150" height="150" style="object-fit:cover;" />
-                    }
-                    else
-                    {
-                        <div class="mb-3 text-muted p-3 border rounded bg-light d-inline-block">
-                            <span>Fotoğraf Yok</span>
-                        </div>
-                    }
-
-                    <h3 class="card-title mt-2">@Model.FullName</h3>
-                    <p class="card-text text-muted">@Model.Specialization</p>
-
-                    <div class="alert alert-warning mt-4 text-start">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <strong>Dikkat:</strong> Bu işlem geri alınamaz. Eğitmen kaydı ve sunucudaki fotoğrafı kalıcı olarak silinecektir.
-                    </div>
-
-                    <form asp-action="Delete">
-                        <input type="hidden" asp-for="Id" />
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-danger">Evet, Sil</button>
-                            <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="container mt-4">
+    <h3>Silmek istediğine emin misin?</h3>
+    <div class="alert alert-danger">
+        <strong>@Model.FullName</strong> eğitmeni silinecek.
+        <br>
+        <small>Sunucudaki resmi de silinmeyecek, sadece kayıt kalkacak.</small>
     </div>
+
+    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+    {
+        <img src="/images/trainers/@Model.ImageUrl" width="100" class="mb-3 rounded" />
+    }
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Evet, Sil</button>
+        <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+    </form>
 </div>

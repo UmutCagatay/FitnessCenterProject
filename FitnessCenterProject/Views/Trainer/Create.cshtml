@@ -1,52 +1,28 @@
 ﻿@model FitnessCenterProject.Models.Trainer
 
 @{
-    ViewData["Title"] = "Eğitmen Ekle";
+    ViewData["Title"] = "Yeni Eğitmen";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Yeni Eğitmen Ekle</h4>
-                </div>
-                <div class="card-body">
-
-                    <form asp-action="Create" method="post" enctype="multipart/form-data">
-
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        <div class="mb-3">
-                            <label asp-for="FullName" class="form-label"></label>
-                            <input asp-for="FullName" class="form-control" placeholder="Örn: Ahmet Yılmaz" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Specialization" class="form-label"></label>
-                            <input asp-for="Specialization" class="form-control" placeholder="Örn: Fitness Baş Antrenörü" />
-                            <span asp-validation-for="Specialization" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Eğitmen Fotoğrafı</label>
-                            <input type="file" name="file" class="form-control" accept="image/*" />
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">Kaydet</button>
-                            <a asp-action="Index" class="btn btn-secondary">İptal</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="container mt-4">
+    <h2>Yeni Eğitmen Ekle</h2>
+    <hr />
+    <form asp-action="Create" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label">Ad Soyad</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
         </div>
-    </div>
+        <div class="mb-3">
+            <label asp-for="Specialization" class="form-label">Uzmanlık</label>
+            <input asp-for="Specialization" class="form-control" />
+            <span asp-validation-for="Specialization" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Fotoğraf Yükle</label>
+            <input type="file" name="file" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-success">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

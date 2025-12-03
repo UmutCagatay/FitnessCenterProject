@@ -14,142 +14,134 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // LİSTELEME
         public async Task<IActionResult> Index()
         {
             return View(await _context.Trainers.ToListAsync());
         }
 
+        // EKLEME SAYFASI
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
+        // EKLEME İŞLEMİ (Resim Yüklemeli)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Trainer trainer, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
+                // Resim yüklenmiş mi bakıyoruz
                 if (file != null)
                 {
-                    string extension = Path.GetExtension(file.FileName);
+                    // Dosya adı çakışmasın diye rastgele isim veriyoruz
+                    string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
 
-                    string uniqueFileName = Guid.NewGuid().ToString() + extension;
+                    // Resmi kaydedeceğimiz klasör yolu: wwwroot/images/trainers
+                    string yol = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", dosyaAdi);
 
-                    string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", uniqueFileName);
-
-                    using (var stream = new FileStream(path, FileMode.Create))
+                    // Resmi oraya kopyalıyoruz
+                    using (var stream = new FileStream(yol, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
 
-                    trainer.ImageUrl = uniqueFileName;
+                    // Veritabanına dosya adını yazıyoruz
+                    trainer.ImageUrl = dosyaAdi;
                 }
 
                 _context.Add(trainer);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             return View(trainer);
         }
 
+        // DÜZENLEME SAYFASI
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
+            // Eğitmeni bulurken verdiği dersleri de (TrainerServices) getiriyoruz.
+            // Bu sayede hangi kutucukların işaretli olacağını bileceğiz.
             var trainer = await _context.Trainers
                                         .Include(t => t.TrainerServices)
                                         .FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainer == null) return NotFound();
 
+            // Tüm dersleri sayfaya gönderiyoruz (Checkbox listesi için)
             ViewBag.Services = await _context.Services.ToListAsync();
 
             return View(trainer);
         }
 
+        // DÜZENLEME İŞLEMİ
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // selectedServices: Formdaki checkboxlardan gelen ID listesi
-        public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[] selectedServices)
+        public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[]? selectedServices)
         {
-            if (id != trainer.Id) return NotFound();
+            // Veritabanındaki "gerçek" kayıtlı veriyi çekiyoruz.
+            var mevcutKayit = await _context.Trainers
+                                            .Include(t => t.TrainerServices)
+                                            .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (ModelState.IsValid)
+            if (mevcutKayit == null) return NotFound();
+
+            // 1. İsim ve Uzmanlık bilgilerini güncelliyoruz.
+            mevcutKayit.FullName = trainer.FullName;
+            mevcutKayit.Specialization = trainer.Specialization;
+
+            // 2. Yeni resim seçildiyse onu yüklüyoruz.
+            if (file != null)
             {
-                try
+                string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                string yol = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", dosyaAdi);
+
+                using (var stream = new FileStream(yol, FileMode.Create))
                 {
-                    // --- 1. Veritabanındaki "Gerçek" Eğitmeni ve İlişkilerini Çek ---
-                    // AsNoTracking KULLANMIYORUZ çünkü değişiklikleri takip edip kaydetmesini istiyoruz.
-                    var existingTrainer = await _context.Trainers
-                                                        .Include(t => t.TrainerServices)
-                                                        .FirstOrDefaultAsync(t => t.Id == id);
-
-                    if (existingTrainer == null) return NotFound();
-
-                    // --- 2. Temel Bilgileri Güncelle ---
-                    existingTrainer.FullName = trainer.FullName;
-                    existingTrainer.Specialization = trainer.Specialization;
-
-                    // --- 3. Resim İşlemleri (Aynı Mantık) ---
-                    if (file != null)
-                    {
-                        // Eski resmi sil
-                        if (existingTrainer.ImageUrl != null)
-                        {
-                            string oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", existingTrainer.ImageUrl);
-                            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                        }
-
-                        // Yeni resmi yükle
-                        string extension = Path.GetExtension(file.FileName);
-                        string uniqueFileName = Guid.NewGuid().ToString() + extension;
-                        string newPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", uniqueFileName);
-
-                        using (var stream = new FileStream(newPath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-                        existingTrainer.ImageUrl = uniqueFileName;
-                    }
-
-                    // --- 4. HİZMET EŞLEŞTİRME (EN ÖNEMLİ KISIM) ---
-                    // A) Mevcut ilişkilerin hepsini temizle (Reset atıyoruz)
-                    if (existingTrainer.TrainerServices != null)
-                    {
-                        existingTrainer.TrainerServices.Clear();
-                    }
-                    else
-                    {
-                        existingTrainer.TrainerServices = new List<TrainerService>();
-                    }
-
-                    // B) Seçilen yeni kutucukları ekle
-                    foreach (var serviceId in selectedServices)
-                    {
-                        existingTrainer.TrainerServices.Add(new TrainerService
-                        {
-                            TrainerId = existingTrainer.Id,
-                            ServiceId = serviceId
-                        });
-                    }
-
-                    // --- 5. Kaydet ---
-                    _context.Update(existingTrainer);
-                    await _context.SaveChangesAsync();
+                    await file.CopyToAsync(stream);
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.Trainers.Any(e => e.Id == id)) return NotFound();
-                    else throw;
-                }
-                return RedirectToAction(nameof(Index));
+
+                // Yeni resim adını veritabanına yazıyoruz.
+                mevcutKayit.ImageUrl = dosyaAdi;
             }
-            return View(trainer);
+
+            // 3. Ders seçimlerini (Checkbox) güncelliyoruz.
+            // Önce eski dersleri siliyoruz (Temizlik).
+            if (mevcutKayit.TrainerServices != null)
+            {
+                mevcutKayit.TrainerServices.Clear();
+            }
+            else
+            {
+                mevcutKayit.TrainerServices = new List<TrainerService>();
+            }
+
+            // Yeni seçilenleri ekliyoruz.
+            if (selectedServices != null)
+            {
+                foreach (var servisId in selectedServices)
+                {
+                    mevcutKayit.TrainerServices.Add(new TrainerService
+                    {
+                        TrainerId = id,
+                        ServiceId = servisId
+                    });
+                }
+            }
+
+            // Tüm değişiklikleri tek komutla kaydediyoruz.
+            // EF Core, "mevcutKayit" üzerinde yaptığımız tüm değişiklikleri anlar ve SQL'e çevirir.
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
 
+        // SİLME SAYFASI
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -159,6 +151,7 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
+        // SİLME İŞLEMİ
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -166,21 +159,10 @@ namespace FitnessCenterProject.Controllers
             var trainer = await _context.Trainers.FindAsync(id);
             if (trainer != null)
             {
-
-                if (trainer.ImageUrl != null)
-                {
-                    string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", trainer.ImageUrl);
-                    if (System.IO.File.Exists(path))
-                    {
-                        System.IO.File.Delete(path);
-                    }
-                }
-
-
                 _context.Trainers.Remove(trainer);
                 await _context.SaveChangesAsync();
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
     }
 }

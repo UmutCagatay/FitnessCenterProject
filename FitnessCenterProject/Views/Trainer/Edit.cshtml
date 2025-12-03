@@ -2,79 +2,72 @@
 
 @{
     ViewData["Title"] = "Eğitmen Düzenle";
+    // Checkbox listesi için dersleri alıyoruz. Boş gelirse hata vermesin diye kontrol ediyoruz.
+    var tumDersler = ViewBag.Services as List<FitnessCenterProject.Models.Service> ?? new List<FitnessCenterProject.Models.Service>();
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-warning">
-                    <h4 class="mb-0">Eğitmen Düzenle</h4>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Edit" enctype="multipart/form-data">
-                        <input type="hidden" asp-for="Id" />
+<div class="container mt-4">
+    <h2>Eğitmen Düzenle</h2>
+    <hr />
+    <form asp-action="Edit" enctype="multipart/form-data">
+        <input type="hidden" asp-for="Id" />
 
-                        <div class="text-center mb-3">
-                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                            {
-                                <img src="/images/trainers/@Model.ImageUrl" class="rounded-circle img-thumbnail" width="150" />
-                                <p class="text-muted small mt-1">Mevcut Fotoğraf</p>
-                            }
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="FullName" class="form-label"></label>
-                            <input asp-for="FullName" class="form-control" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Specialization" class="form-label"></label>
-                            <input asp-for="Specialization" class="form-control" />
-                            <span asp-validation-for="Specialization" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Fotoğrafı Değiştir</label>
-                            <input type="file" name="file" class="form-control" accept="image/*" />
-                            <small class="text-muted">Değiştirmek istemiyorsanız boş bırakın.</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Verebildiği Hizmetler</label>
-                            <div class="card p-3 bg-light">
-                                <div class="row">
-                                    @foreach (var service in ViewBag.Services as List<FitnessCenterProject.Models.Service>)
-                                    {
-                                        bool isChecked = Model.TrainerServices != null &&
-                                        Model.TrainerServices.Any(ts => ts.ServiceId == service.Id);
-
-                                        <div class="col-md-6">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                       name="selectedServices"
-                                                       value="@service.Id"
-                                                       id="service_@service.Id"
-                                                       @(isChecked ? "checked" : "")>
-
-                                                <label class="form-check-label" for="service_@service.Id">
-                                                    @service.Name
-                                                </label>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-warning">Güncelle</button>
-                            <a asp-action="Index" class="btn btn-secondary">İptal</a>
-                        </div>
-                    </form>
-                </div>
+        <div class="mb-3">
+            <label class="form-label">Mevcut Resim:</label>
+            <div>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="/images/trainers/@Model.ImageUrl" width="100" class="img-thumbnail" />
+                }
+                else
+                {
+                    <span>Yok</span>
+                }
             </div>
         </div>
-    </div>
+
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label">Ad Soyad</label>
+            <input asp-for="FullName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Specialization" class="form-label">Uzmanlık</label>
+            <input asp-for="Specialization" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Fotoğrafı Değiştir</label>
+            <input type="file" name="file" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><strong>Verdiği Dersler:</strong></label>
+            <div class="border p-3">
+                @if (tumDersler.Count == 0)
+                {
+                    <span>Sistemde hiç ders yok. Önce Hizmet ekleyin.</span>
+                }
+                else
+                {
+                    @foreach (var ders in tumDersler)
+                    {
+                        // Hoca bu dersi veriyor mu?
+                        bool dersVeriyorMu = Model.TrainerServices?.Any(x => x.ServiceId == ders.Id) ?? false;
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   name="selectedServices"
+                                   value="@ders.Id"
+                                   @(dersVeriyorMu ? "checked" : "") />
+                            <label class="form-check-label">@ders.Name</label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </form>
 </div>
