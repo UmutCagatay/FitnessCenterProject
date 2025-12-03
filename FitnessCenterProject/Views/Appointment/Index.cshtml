@@ -1,0 +1,94 @@
+﻿@model IEnumerable<FitnessCenterProject.Models.Appointment>
+
+@{
+    ViewData["Title"] = "Randevularım";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>@(User.IsInRole("Admin") ? "Tüm Randevular" : "Randevularım")</h2>
+
+        @if (!User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-success">+ Yeni Randevu Al</a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning">Henüz kayıtlı bir randevu bulunmamaktadır.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Saat</th>
+                    <th>Hizmet</th>
+                    <th>Eğitmen</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>Üye</th>
+                    }
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.StartDate.ToString("dd.MM.yyyy")</td>
+                        <td>@item.StartDate.ToString("HH:mm")</td>
+                        <td>@item.Service.Name</td>
+                        <td>@item.Trainer.FullName</td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td>
+                                @if (item.AppUser != null)
+                                {
+                                    <span>@item.AppUser.FirstName @item.AppUser.LastName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Silinmiş Üye</span>
+                                }
+                            </td>
+                        }
+                        <td>
+                            @if (item.Status == "Pending")
+                            {
+                                <span class="badge bg-warning text-dark">Bekliyor</span>
+                            }
+                            else if (item.Status == "Confirmed")
+                            {
+                                <span class="badge bg-success">Onaylandı</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@item.Status</span>
+                            }
+                        </td>
+                        <td>
+                            @if (User.IsInRole("Admin") && item.Status == "Pending")
+                            {
+                                <form asp-action="Approve" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button class="btn btn-sm btn-success">Onayla</button>
+                                </form>
+                            }
+
+                            <form asp-action="Delete" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('Randevuyu iptal etmek istediğinize emin misiniz?');">
+                                    @(User.IsInRole("Admin") ? "Sil" : "İptal Et")
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

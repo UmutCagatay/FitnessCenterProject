@@ -1,12 +1,10 @@
-﻿using FitnessCenterProject.Data;
+﻿using Microsoft.AspNetCore.Mvc;
+using FitnessCenterProject.Data;
 using FitnessCenterProject.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class AvailabilityController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,12 +22,16 @@ namespace FitnessCenterProject.Controllers
             var trainer = await _context.Trainers.FindAsync(trainerId);
             if (trainer == null) return NotFound();
 
-            var saatler = await _context.TrainerAvailabilities
-                                        .Where(x => x.TrainerId == trainerId)
-                                        .ToListAsync();
+            var availabilityList = await _context.TrainerAvailabilities
+                                                 .Where(x => x.TrainerId == trainerId)
+                                                 .ToListAsync();
 
             ViewBag.Trainer = trainer;
-            return View(saatler);
+            ViewBag.SelectedDay = TempData["LastDay"];
+            ViewBag.SelectedStart = TempData["LastStart"];
+            ViewBag.SelectedEnd = TempData["LastEnd"];
+
+            return View(availabilityList);
         }
 
         [HttpPost]
@@ -46,6 +48,11 @@ namespace FitnessCenterProject.Controllers
             {
                 _context.TrainerAvailabilities.Add(availability);
                 await _context.SaveChangesAsync();
+
+                TempData["LastDay"] = availability.DayOfWeek;
+                TempData["LastStart"] = availability.StartTime.ToString(@"hh\:mm");
+                TempData["LastEnd"] = availability.EndTime.ToString(@"hh\:mm");
+
                 return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
 

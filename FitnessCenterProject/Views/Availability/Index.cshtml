@@ -27,13 +27,16 @@
                         <div class="mb-3">
                             <label class="form-label">Gün</label>
                             <select name="DayOfWeek" class="form-select" required>
-                                <option value="Pazartesi">Pazartesi</option>
-                                <option value="Salı">Salı</option>
-                                <option value="Çarşamba">Çarşamba</option>
-                                <option value="Perşembe">Perşembe</option>
-                                <option value="Cuma">Cuma</option>
-                                <option value="Cumartesi">Cumartesi</option>
-                                <option value="Pazar">Pazar</option>
+                                <!- Döngü veya tek tek optionların içine şu mantığı kuracağız ->
+                                @{
+                                    string[] gunler = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
+                                    foreach (var gun in gunler)
+                                    {
+                                        var seciliMi = (ViewBag.SelectedDay as string) == gun ? "selected" : "";
+                                        <!option value="@gun" @seciliMi>@gun</!option> 
+                                        <option value="@gun" @seciliMi>@gun</option>
+                                    }
+                                }
                             </select>
                         </div>
 
