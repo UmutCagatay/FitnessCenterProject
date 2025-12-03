@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "AI Antrenör";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h3 class="mb-0">🤖 Yapay Zeka Antrenörü</h3>
+                    <p class="mb-0 small text-white-50">Google Gemini AI destekli kişisel tavsiye sistemi</p>
+                </div>
+                <div class="card-body p-4">
+                    <form id="aiForm">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Yaşınız</label>
+                                <input type="number" name="yas" class="form-control" placeholder="22" required />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Kilonuz (kg)</label>
+                                <input type="number" name="kilo" class="form-control" placeholder="75" required />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Boyunuz (cm)</label>
+                                <input type="number" name="boy" class="form-control" placeholder="180" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Hedefiniz Nedir?</label>
+                            <select name="hedef" class="form-select" required>
+                                <option value="Kilo Verme">Kilo Vermek & Yağ Yakmak</option>
+                                <option value="Kas Kazanma">Kas Kütlesi Kazanmak</option>
+                                <option value="Sağlıklı Yaşam">Daha Zinde Hissetmek</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="btnAnaliz">
+                                ✨ Gemini'ye Sor
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="sonucAlani" class="mt-4" style="display:none;">
+                        <div class="alert alert-success border-0 shadow-sm">
+                            <h5 class="alert-heading fw-bold">📢 Senin İçin Önerim:</h5>
+                            <hr>
+                            <div id="aiMesaj"></div>
+                        </div>
+                    </div>
+
+                    <div id="yukleniyor" class="text-center mt-4" style="display:none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Gemini verilerini analiz ediyor, lütfen bekle...</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#aiForm').submit(function (e) {
+                e.preventDefault();
+
+                $('#sonucAlani').hide();
+                $('#yukleniyor').fadeIn();
+                $('#btnAnaliz').prop('disabled', true);
+
+                $.post('/AI/GeneratePlan', $(this).serialize(), function (data) {
+                    $('#yukleniyor').hide();
+                    $('#btnAnaliz').prop('disabled', false);
+
+                    if (data.success) {
+                        $('#aiMesaj').html(data.message);
+                        $('#sonucAlani').fadeIn();
+                    } else {
+                        alert("Hata: " + data.message);
+                    }
+                }).fail(function() {
+                    $('#yukleniyor').hide();
+                    $('#btnAnaliz').prop('disabled', false);
+                    alert("Sunucu ile iletişim hatası oluştu.");
+                });
+            });
+        });
+    </script>
+}

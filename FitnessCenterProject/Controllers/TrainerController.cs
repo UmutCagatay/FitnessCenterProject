@@ -16,20 +16,21 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
-        // LİSTELEME
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Trainers.ToListAsync());
+            var trainers = await _context.Trainers
+                                         .Include(t => t.TrainerServices)
+                                         .ThenInclude(ts => ts.Service)
+                                         .ToListAsync();
+            return View(trainers);
         }
 
-        // EKLEME SAYFASI
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-        // EKLEME İŞLEMİ (Resim Yüklemeli)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Trainer trainer, IFormFile? file)
@@ -57,7 +58,6 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
-        // DÜZENLEME SAYFASI
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -74,7 +74,6 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
-        // DÜZENLEME İŞLEMİ
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[]? selectedServices)
@@ -126,7 +125,6 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction("Index");
         }
 
-        // SİLME SAYFASI
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -136,7 +134,6 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
-        // SİLME İŞLEMİ
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
