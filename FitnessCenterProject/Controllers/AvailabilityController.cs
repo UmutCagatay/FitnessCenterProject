@@ -27,7 +27,6 @@ namespace FitnessCenterProject.Controllers
                                         .ToListAsync();
 
             ViewBag.Trainer = trainer;
-
             return View(saatler);
         }
 
@@ -37,7 +36,7 @@ namespace FitnessCenterProject.Controllers
         {
             if (availability.EndTime <= availability.StartTime)
             {
-                TempData["Error"] = "Bitiş saati, başlangıç saatinden büyük olmalıdır.";
+                TempData["Error"] = "Bitiş saati, başlangıç saatinden sonra olmalıdır.";
                 return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
 
@@ -55,13 +54,12 @@ namespace FitnessCenterProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var kayit = await _context.TrainerAvailabilities.FindAsync(id);
-            if (kayit != null)
+            var item = await _context.TrainerAvailabilities.FindAsync(id);
+            if (item != null)
             {
-                _context.TrainerAvailabilities.Remove(kayit);
+                _context.TrainerAvailabilities.Remove(item);
                 await _context.SaveChangesAsync();
-
-                return RedirectToAction("Index", new { trainerId = kayit.TrainerId });
+                return RedirectToAction("Index", new { trainerId = item.TrainerId });
             }
             return NotFound();
         }

@@ -38,13 +38,25 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Başlangıç</label>
-                            <input type="time" name="StartTime" class="form-control" required />
+                            <label class="form-label">Başlangıç Saati</label>
+                            <select name="StartTime" class="form-select" required>
+                                @for (int i = 8; i <= 22; i++)
+                                {
+                                    <option value="@i.ToString("00"):00">@i.ToString("00"):00</option>
+                                    <option value="@i.ToString("00"):30">@i.ToString("00"):30</option>
+                                }
+                            </select>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Bitiş</label>
-                            <input type="time" name="EndTime" class="form-control" required />
+                            <label class="form-label">Bitiş Saati</label>
+                            <select name="EndTime" class="form-select" required>
+                                @for (int i = 9; i <= 23; i++)
+                                {
+                                    <option value="@i.ToString("00"):00">@i.ToString("00"):00</option>
+                                    <option value="@i.ToString("00"):30">@i.ToString("00"):30</option>
+                                }
+                            </select>
                         </div>
 
                         <button type="submit" class="btn btn-success w-100">+ Ekle</button>
@@ -63,7 +75,7 @@
                     }
                     else
                     {
-                        <table class="table table-bordered table-striped text-center">
+                        <table class="table table-bordered table-striped text-center align-middle">
                             <thead>
                                 <tr>
                                     <th>Gün</th>
@@ -77,7 +89,9 @@
                                     <tr>
                                         <td>@item.DayOfWeek</td>
                                         <td>
-                                            @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+                                            <span class="badge bg-success fs-6">
+                                                @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+                                            </span>
                                         </td>
                                         <td>
                                             <form asp-action="Delete" method="post" class="d-inline">
