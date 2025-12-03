@@ -1,0 +1,97 @@
+﻿@model IEnumerable<FitnessCenterProject.Models.TrainerAvailability>
+
+@{
+    var trainer = ViewBag.Trainer as FitnessCenterProject.Models.Trainer;
+    ViewData["Title"] = "Çalışma Saatleri";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>@trainer.FullName - Çalışma Saatleri</h3>
+        <a asp-controller="Trainer" asp-action="Index" class="btn btn-secondary">Eğitmenlere Dön</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Yeni Saat Ekle</div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" name="TrainerId" value="@trainer.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Gün</label>
+                            <select name="DayOfWeek" class="form-select" required>
+                                <option value="Pazartesi">Pazartesi</option>
+                                <option value="Salı">Salı</option>
+                                <option value="Çarşamba">Çarşamba</option>
+                                <option value="Perşembe">Perşembe</option>
+                                <option value="Cuma">Cuma</option>
+                                <option value="Cumartesi">Cumartesi</option>
+                                <option value="Pazar">Pazar</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Başlangıç</label>
+                            <input type="time" name="StartTime" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Bitiş</label>
+                            <input type="time" name="EndTime" class="form-control" required />
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">+ Ekle</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">Mevcut Müsaitlik Durumu</div>
+                <div class="card-body">
+                    @if (!Model.Any())
+                    {
+                        <p class="text-muted text-center my-3">Henüz çalışma saati eklenmemiş.</p>
+                    }
+                    else
+                    {
+                        <table class="table table-bordered table-striped text-center">
+                            <thead>
+                                <tr>
+                                    <th>Gün</th>
+                                    <th>Saat Aralığı</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>@item.DayOfWeek</td>
+                                        <td>
+                                            @item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")
+                                        </td>
+                                        <td>
+                                            <form asp-action="Delete" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

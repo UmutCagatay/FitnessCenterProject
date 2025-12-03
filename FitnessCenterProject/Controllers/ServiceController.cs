@@ -63,8 +63,6 @@ namespace FitnessCenterProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Update komutu: Formdan gelen veriyi veritabanındakiyle değiştirir.
-                // Tek tek service.Name = ... yazmamıza gerek kalmaz.
                 _context.Update(service);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");

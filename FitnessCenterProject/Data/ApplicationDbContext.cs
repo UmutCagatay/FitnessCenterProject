@@ -13,6 +13,7 @@ namespace FitnessCenterProject.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<Trainer> Trainers { get; set; }
         public DbSet<TrainerService> TrainerServices { get; set; }
+        public DbSet<TrainerAvailability> TrainerAvailabilities { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

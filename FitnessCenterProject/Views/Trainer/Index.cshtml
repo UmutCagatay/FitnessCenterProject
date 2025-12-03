@@ -35,7 +35,8 @@
                     </td>
                     <td>@item.FullName</td>
                     <td>@item.Specialization</td>
-                    <td>
+                    <td class="align-middle">
+                        <a asp-controller="Availability" asp-action="Index" asp-route-trainerId="@item.Id" class="btn btn-sm btn-info text-white">Saatler</a>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Düzenle</a>
                         <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Sil</a>
                     </td>

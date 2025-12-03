@@ -34,22 +34,17 @@ namespace FitnessCenterProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Resim yüklenmiş mi bakıyoruz
                 if (file != null)
                 {
-                    // Dosya adı çakışmasın diye rastgele isim veriyoruz
                     string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
 
-                    // Resmi kaydedeceğimiz klasör yolu: wwwroot/images/trainers
                     string yol = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", dosyaAdi);
 
-                    // Resmi oraya kopyalıyoruz
                     using (var stream = new FileStream(yol, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
 
-                    // Veritabanına dosya adını yazıyoruz
                     trainer.ImageUrl = dosyaAdi;
                 }
 
@@ -66,15 +61,12 @@ namespace FitnessCenterProject.Controllers
         {
             if (id == null) return NotFound();
 
-            // Eğitmeni bulurken verdiği dersleri de (TrainerServices) getiriyoruz.
-            // Bu sayede hangi kutucukların işaretli olacağını bileceğiz.
             var trainer = await _context.Trainers
                                         .Include(t => t.TrainerServices)
                                         .FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainer == null) return NotFound();
 
-            // Tüm dersleri sayfaya gönderiyoruz (Checkbox listesi için)
             ViewBag.Services = await _context.Services.ToListAsync();
 
             return View(trainer);
@@ -85,18 +77,15 @@ namespace FitnessCenterProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[]? selectedServices)
         {
-            // Veritabanındaki "gerçek" kayıtlı veriyi çekiyoruz.
             var mevcutKayit = await _context.Trainers
                                             .Include(t => t.TrainerServices)
                                             .FirstOrDefaultAsync(t => t.Id == id);
 
             if (mevcutKayit == null) return NotFound();
 
-            // 1. İsim ve Uzmanlık bilgilerini güncelliyoruz.
             mevcutKayit.FullName = trainer.FullName;
             mevcutKayit.Specialization = trainer.Specialization;
 
-            // 2. Yeni resim seçildiyse onu yüklüyoruz.
             if (file != null)
             {
                 string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
@@ -107,12 +96,9 @@ namespace FitnessCenterProject.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                // Yeni resim adını veritabanına yazıyoruz.
                 mevcutKayit.ImageUrl = dosyaAdi;
             }
 
-            // 3. Ders seçimlerini (Checkbox) güncelliyoruz.
-            // Önce eski dersleri siliyoruz (Temizlik).
             if (mevcutKayit.TrainerServices != null)
             {
                 mevcutKayit.TrainerServices.Clear();
@@ -122,7 +108,6 @@ namespace FitnessCenterProject.Controllers
                 mevcutKayit.TrainerServices = new List<TrainerService>();
             }
 
-            // Yeni seçilenleri ekliyoruz.
             if (selectedServices != null)
             {
                 foreach (var servisId in selectedServices)
@@ -135,8 +120,6 @@ namespace FitnessCenterProject.Controllers
                 }
             }
 
-            // Tüm değişiklikleri tek komutla kaydediyoruz.
-            // EF Core, "mevcutKayit" üzerinde yaptığımız tüm değişiklikleri anlar ve SQL'e çevirir.
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
