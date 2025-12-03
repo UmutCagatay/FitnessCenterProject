@@ -16,29 +16,24 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
-        // LİSTELEME (READ)
         public async Task<IActionResult> Index()
         {
-            // Veritabanındaki tüm hizmetleri listeye çevirip sayfaya gönderiyoruz.
             var services = await _context.Services.ToListAsync();
             return View(services);
         }
 
-        // EKLEME SAYFASI (CREATE GET)
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-        // EKLEME İŞLEMİ (CREATE POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Service service)
         {
             if (ModelState.IsValid)
             {
-                // Entity Framework'ün "Add" komutuyla veriyi ekliyoruz.
                 _context.Add(service);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index");
@@ -46,7 +41,6 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
-        // DÜZENLEME SAYFASI (EDIT GET)
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -58,7 +52,6 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
-        // DÜZENLEME İŞLEMİ (EDIT POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Service service)
@@ -72,7 +65,6 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
-        // SİLME SAYFASI (DELETE GET)
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -84,7 +76,6 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
-        // SİLME İŞLEMİ (DELETE POST)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
