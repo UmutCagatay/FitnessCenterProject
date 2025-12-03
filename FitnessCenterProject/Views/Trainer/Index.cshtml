@@ -8,27 +8,29 @@
     <h2>Eğitmen Listesi</h2>
     <a asp-action="Create" class="btn btn-primary mb-3">Yeni Eğitmen Ekle</a>
 
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered align-middle">
+        <thead class="table-dark">
             <tr>
-                <th>Resim</th>
+                <th style="width: 150px;">Resim</th>
                 <th>Ad Soyad</th>
                 <th>Uzmanlık</th>
-                <th>İşlemler</th>
+                <th style="width: 180px;">İşlemler</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>
+                    <td class="text-center">
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
-                            <img src="/images/trainers/@item.ImageUrl" width="50" height="50" style="object-fit:cover; border-radius:50%;" />
+                            <img src="/images/trainers/@item.ImageUrl" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;" />
                         }
                         else
                         {
-                            <span>Resim Yok</span>
+                            <div style="width: 100px; height: 100px; background-color: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <span class="text-muted small">Resim Yok</span>
+                            </div>
                         }
                     </td>
                     <td>@item.FullName</td>
