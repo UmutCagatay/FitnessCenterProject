@@ -14,6 +14,7 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // Saatleri listele
         [HttpGet]
         public async Task<IActionResult> Index(int? trainerId)
         {
@@ -28,6 +29,7 @@ namespace FitnessCenterProject.Controllers
 
             ViewBag.Trainer = trainer;
 
+            // Son seçimleri sayfaya geri gönder
             ViewBag.SeciliGun = TempData["SonGun"];
             ViewBag.SeciliBaslangic = TempData["SonBaslangic"];
             ViewBag.SeciliBitis = TempData["SonBitis"];
@@ -35,10 +37,12 @@ namespace FitnessCenterProject.Controllers
             return View(saatler);
         }
 
+        // Yeni saat ekle
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TrainerAvailability availability)
         {
+            // Saat mantıksızsa hata ver
             if (availability.EndTime <= availability.StartTime)
             {
                 TempData["Error"] = "Bitiş saati, başlangıç saatinden sonra olmalıdır.";
@@ -50,6 +54,7 @@ namespace FitnessCenterProject.Controllers
                 _context.TrainerAvailabilities.Add(availability);
                 await _context.SaveChangesAsync();
 
+                // Seçimleri hafızada tut
                 TempData["SonGun"] = availability.DayOfWeek;
                 TempData["SonBaslangic"] = availability.StartTime.ToString(@"hh\:mm");
                 TempData["SonBitis"] = availability.EndTime.ToString(@"hh\:mm");
@@ -60,6 +65,7 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction("Index", new { trainerId = availability.TrainerId });
         }
 
+        // Saati sil
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)

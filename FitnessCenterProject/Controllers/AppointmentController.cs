@@ -7,7 +7,7 @@ using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize]
+    [Authorize] // Giriş yapmayan giremez
     public class AppointmentController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,10 +19,12 @@ namespace FitnessCenterProject.Controllers
             _userManager = userManager;
         }
 
+        // Randevuları listele
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
 
+            // Admin hepsini görür
             if (User.IsInRole("Admin"))
             {
                 var all = await _context.Appointments
@@ -35,6 +37,7 @@ namespace FitnessCenterProject.Controllers
             }
             else
             {
+                // Üye sadece kendininkini görür
                 var mine = await _context.Appointments
                                          .Where(a => a.AppUserId == user.Id)
                                          .Include(a => a.Trainer)
@@ -45,6 +48,7 @@ namespace FitnessCenterProject.Controllers
             }
         }
 
+        // Randevu al sayfasını aç
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -52,6 +56,7 @@ namespace FitnessCenterProject.Controllers
             return View();
         }
 
+        // Randevuyu kaydet
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Appointment appointment, DateTime tarih, string saat)
@@ -61,6 +66,7 @@ namespace FitnessCenterProject.Controllers
             appointment.Status = "Pending";
             appointment.CreatedDate = DateTime.Now;
 
+            // Tarih ve saati birleştir
             if (TimeSpan.TryParse(saat, out TimeSpan zaman))
             {
                 appointment.StartDate = tarih.Date.Add(zaman);
@@ -77,6 +83,7 @@ namespace FitnessCenterProject.Controllers
             return View(appointment);
         }
 
+        // Randevu sil/iptal et
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -85,6 +92,7 @@ namespace FitnessCenterProject.Controllers
 
             if (appointment != null)
             {
+                // Başkasının randevusunu silemezsin
                 if (!User.IsInRole("Admin") && appointment.AppUserId != user.Id)
                 {
                     return Unauthorized();
@@ -96,6 +104,7 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction("Index");
         }
 
+        // Randevuyu onayla (Sadece Admin)
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)
@@ -109,6 +118,7 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction("Index");
         }
 
+        // AJAX: Hizmete göre hocaları getir
         [HttpGet]
         public async Task<JsonResult> GetTrainersByService(int serviceId)
         {
@@ -120,6 +130,7 @@ namespace FitnessCenterProject.Controllers
             return Json(trainers);
         }
 
+        // AJAX: Boş saatleri hesapla
         [HttpGet]
         public async Task<JsonResult> GetAvailableSlots(int trainerId, int serviceId, DateTime date)
         {
@@ -132,6 +143,7 @@ namespace FitnessCenterProject.Controllers
             };
             string gunAdi = gunler[date.DayOfWeek];
 
+            // Hocanın o günkü mesaisi
             var mesai = await _context.TrainerAvailabilities
                                       .FirstOrDefaultAsync(t => t.TrainerId == trainerId && t.DayOfWeek == gunAdi);
 
@@ -141,6 +153,7 @@ namespace FitnessCenterProject.Controllers
             if (service == null) return Json(new List<string>());
             int sure = service.Duration;
 
+            // Dolu randevuları bul
             var doluRandevular = await _context.Appointments
                                                .Include(a => a.Service)
                                                .Where(a => a.TrainerId == trainerId &&
@@ -151,15 +164,18 @@ namespace FitnessCenterProject.Controllers
             var musaitSlotlar = new List<string>();
             TimeSpan suankiZaman = mesai.StartTime;
 
+            // Saatleri tek tek kontrol et
             while (suankiZaman.Add(TimeSpan.FromMinutes(sure)) <= mesai.EndTime)
             {
                 TimeSpan bitisZamani = suankiZaman.Add(TimeSpan.FromMinutes(sure));
 
+                // Çakışma var mı?
                 bool cakisma = doluRandevular.Any(a =>
                     (a.StartDate.TimeOfDay < bitisZamani) &&
                     (a.StartDate.TimeOfDay.Add(TimeSpan.FromMinutes(a.Service.Duration)) > suankiZaman)
                 );
 
+                // Geçmiş zaman mı?
                 bool gecmisZaman = (date.Date == DateTime.Today && suankiZaman < DateTime.Now.TimeOfDay);
 
                 if (!cakisma && !gecmisZaman)

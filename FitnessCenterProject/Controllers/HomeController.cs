@@ -16,8 +16,10 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // Ana sayfa
         public async Task<IActionResult> Index()
         {
+            // Vitrin için verileri çek
             var model = new HomeViewModel
             {
                 Services = await _context.Services.ToListAsync(),
@@ -32,6 +34,7 @@ namespace FitnessCenterProject.Controllers
             return View();
         }
 
+        // Hata sayfası
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

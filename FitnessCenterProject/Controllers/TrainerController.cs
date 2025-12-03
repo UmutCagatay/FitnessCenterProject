@@ -6,7 +6,7 @@ using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")] // Sadece Admin
     public class TrainerController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,6 +16,7 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // Hocaları listele (Dersleriyle beraber)
         public async Task<IActionResult> Index()
         {
             var trainers = await _context.Trainers
@@ -25,18 +26,21 @@ namespace FitnessCenterProject.Controllers
             return View(trainers);
         }
 
+        // Ekleme sayfası
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
+        // Kaydetme işlemi (Resimli)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Trainer trainer, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
+                // Resim varsa kaydet
                 if (file != null)
                 {
                     string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
@@ -57,6 +61,7 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
+        // Düzenleme sayfası
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -73,6 +78,7 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
+        // Güncelleme işlemi (Resim + Dersler)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Trainer trainer, IFormFile? file, int[]? selectedServices)
@@ -83,9 +89,11 @@ namespace FitnessCenterProject.Controllers
 
             if (mevcutKayit == null) return NotFound();
 
+            // Bilgileri güncelle
             mevcutKayit.FullName = trainer.FullName;
             mevcutKayit.Specialization = trainer.Specialization;
 
+            // Yeni resim varsa değiştir
             if (file != null)
             {
                 string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
@@ -99,6 +107,7 @@ namespace FitnessCenterProject.Controllers
                 mevcutKayit.ImageUrl = dosyaAdi;
             }
 
+            // Dersleri güncelle
             if (mevcutKayit.TrainerServices != null)
             {
                 mevcutKayit.TrainerServices.Clear();
@@ -108,6 +117,7 @@ namespace FitnessCenterProject.Controllers
                 mevcutKayit.TrainerServices = new List<TrainerService>();
             }
 
+            // Yeni seçilenleri ekle
             if (selectedServices != null)
             {
                 foreach (var servisId in selectedServices)
@@ -124,6 +134,7 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Silme sayfası
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -135,6 +146,7 @@ namespace FitnessCenterProject.Controllers
             return View(trainer);
         }
 
+        // Silme işlemi
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

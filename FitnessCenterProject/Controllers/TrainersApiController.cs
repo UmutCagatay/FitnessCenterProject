@@ -16,6 +16,7 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // API'den hoca listesi (Filtreleme var)
         [HttpGet]
         public async Task<IActionResult> GetTrainers(string? uzmanlik)
         {
@@ -23,6 +24,7 @@ namespace FitnessCenterProject.Controllers
 
             if (!string.IsNullOrEmpty(uzmanlik))
             {
+                // Ders adına göre filtrele
                 query = query.Where(t => t.TrainerServices.Any(ts => ts.Service.Name.Contains(uzmanlik)));
             }
 

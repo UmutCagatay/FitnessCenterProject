@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize]
+    [Authorize] // Sadece üyeler girebilir
     public class AIController : Controller
     {
         private readonly IConfiguration _configuration;
@@ -18,24 +18,29 @@ namespace FitnessCenterProject.Controllers
             _httpClient = new HttpClient();
         }
 
+        // Tavsiye sayfasını açar
         [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
+        // Yapay zekaya sorma işlemi
         [HttpPost]
         public async Task<IActionResult> GeneratePlan(int yas, int kilo, int boy, string hedef)
         {
+            // Ayarlardan şifreyi al
             string apiKey = _configuration["GeminiApiKey"];
 
             if (string.IsNullOrEmpty(apiKey))
             {
-                return Json(new { success = false, message = "API Anahtarı bulunamadı." });
+                return Json(new { success = false, message = "API Anahtarı yok." });
             }
 
+            // Google'ın adresi
             string apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
+            // Yapay zekaya ne soracağız
             string prompt = $"Danışan Profili: {yas} yaşında, {kilo} kg ağırlığında, {boy} cm boyunda. Hedef: {hedef}. " +
                             $"Bu kişi için haftalık egzersiz ve beslenme tavsiyesi hazırla. " +
                             $"Kurallar: " +
@@ -44,14 +49,12 @@ namespace FitnessCenterProject.Controllers
                             $"3. Asla Markdown sembolleri kullanma. Sadece HTML. " +
                             $"4. Kod bloğu (```) içine alma.";
 
+            // Soruyu paketle
             var requestBody = new
             {
                 contents = new[]
                 {
-                    new
-                    {
-                        parts = new[] { new { text = prompt } }
-                    }
+                    new { parts = new[] { new { text = prompt } } }
                 }
             };
 
@@ -60,28 +63,35 @@ namespace FitnessCenterProject.Controllers
 
             try
             {
+                // İsteği gönder
                 var response = await _httpClient.PostAsync(apiUrl, content);
                 var responseString = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
+                    // Cevabı çöz ve al
                     var geminiResponse = JsonSerializer.Deserialize<GeminiApiResponse>(responseString);
-                    string aiResult = geminiResponse?.Candidates?[0]?.Content?.Parts?[0]?.Text ?? "Cevap alınamadı.";
+                    string aiResult = geminiResponse?.Candidates?[0]?.Content?.Parts?[0]?.Text ?? "Cevap yok.";
+
+                    // Temizlik yap
                     aiResult = aiResult.Replace("```html", "").Replace("```", "");
+
+                    // Sonucu sayfaya yolla
                     return Json(new { success = true, message = aiResult });
                 }
                 else
                 {
-                    return Json(new { success = false, message = $"Hata Kodu: {response.StatusCode}" });
+                    return Json(new { success = false, message = $"Hata: {response.StatusCode}" });
                 }
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Bağlantı hatası: " + ex.Message });
+                return Json(new { success = false, message = "Bağlantı hatası." });
             }
         }
     }
 
+    // Gelen cevabı karşılamak için sınıflar
     public class GeminiApiResponse { [JsonPropertyName("candidates")] public Candidate[] Candidates { get; set; } }
     public class Candidate { [JsonPropertyName("content")] public Content Content { get; set; } }
     public class Content { [JsonPropertyName("parts")] public Part[] Parts { get; set; } }

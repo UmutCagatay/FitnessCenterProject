@@ -6,7 +6,7 @@ using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")] // Sadece Admin
     public class UserController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
@@ -16,12 +16,14 @@ namespace FitnessCenterProject.Controllers
             _userManager = userManager;
         }
 
+        // Üyeleri listele
         public async Task<IActionResult> Index()
         {
             var users = await _userManager.Users.ToListAsync();
             return View(users);
         }
 
+        // Üyeyi sil
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)

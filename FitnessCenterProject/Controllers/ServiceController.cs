@@ -6,7 +6,7 @@ using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")] // Sadece Admin
     public class ServiceController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,18 +16,21 @@ namespace FitnessCenterProject.Controllers
             _context = context;
         }
 
+        // Hizmetleri listele
         public async Task<IActionResult> Index()
         {
             var services = await _context.Services.ToListAsync();
             return View(services);
         }
 
+        // Ekleme sayfası
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
+        // Kaydetme işlemi
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Service service)
@@ -41,6 +44,7 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
+        // Düzenleme sayfası
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -52,6 +56,7 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
+        // Güncelleme işlemi
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Service service)
@@ -65,6 +70,7 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
+        // Silme onayı sayfası
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -76,6 +82,7 @@ namespace FitnessCenterProject.Controllers
             return View(service);
         }
 
+        // Kesin silme işlemi
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

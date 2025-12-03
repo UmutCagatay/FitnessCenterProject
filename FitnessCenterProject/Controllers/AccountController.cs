@@ -16,40 +16,48 @@ namespace FitnessCenterProject.Controllers
             _signInManager = signInManager;
         }
 
+        // Giriş sayfasını açar
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
+        // Giriş yap butonuna basınca
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
+                // Şifre ve mail doğru mu bak
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
 
                 if (result.Succeeded)
                 {
+                    // Başarılıysa ana sayfaya git
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Hatalıysa mesaj göster
                 ModelState.AddModelError("", "Email veya şifre hatalı.");
             }
             return View(model);
         }
 
+        // Kayıt ol sayfasını açar
         [HttpGet]
         public IActionResult Register()
         {
             return View();
         }
 
+        // Kayıt ol butonuna basınca
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
+                // Yeni kullanıcı oluşturuyoruz
                 var user = new AppUser
                 {
                     UserName = model.Email,
@@ -58,14 +66,17 @@ namespace FitnessCenterProject.Controllers
                     LastName = model.LastName
                 };
 
+                // Veritabanına kaydediyoruz
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
+                    // Kayıt oldu, hemen giriş yap
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Hata varsa göster (Şifre kısa vs.)
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
@@ -74,6 +85,7 @@ namespace FitnessCenterProject.Controllers
             return View(model);
         }
 
+        // Çıkış yapma işlemi
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
