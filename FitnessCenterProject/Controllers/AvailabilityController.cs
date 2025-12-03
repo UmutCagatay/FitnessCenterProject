@@ -22,16 +22,16 @@ namespace FitnessCenterProject.Controllers
             var trainer = await _context.Trainers.FindAsync(trainerId);
             if (trainer == null) return NotFound();
 
-            var availabilityList = await _context.TrainerAvailabilities
-                                                 .Where(x => x.TrainerId == trainerId)
-                                                 .ToListAsync();
+            var list = await _context.TrainerAvailabilities
+                                     .Where(x => x.TrainerId == trainerId)
+                                     .ToListAsync();
 
             ViewBag.Trainer = trainer;
-            ViewBag.SelectedDay = TempData["LastDay"];
-            ViewBag.SelectedStart = TempData["LastStart"];
-            ViewBag.SelectedEnd = TempData["LastEnd"];
+            ViewBag.LastDay = TempData["LastDay"];
+            ViewBag.LastStart = TempData["LastStart"];
+            ViewBag.LastEnd = TempData["LastEnd"];
 
-            return View(availabilityList);
+            return View(list);
         }
 
         [HttpPost]
@@ -41,10 +41,8 @@ namespace FitnessCenterProject.Controllers
             if (availability.EndTime <= availability.StartTime)
             {
                 TempData["Error"] = "Bitiş saati, başlangıç saatinden sonra olmalıdır.";
-                return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
-
-            if (ModelState.IsValid)
+            else if (ModelState.IsValid)
             {
                 _context.TrainerAvailabilities.Add(availability);
                 await _context.SaveChangesAsync();
@@ -52,8 +50,6 @@ namespace FitnessCenterProject.Controllers
                 TempData["LastDay"] = availability.DayOfWeek;
                 TempData["LastStart"] = availability.StartTime.ToString(@"hh\:mm");
                 TempData["LastEnd"] = availability.EndTime.ToString(@"hh\:mm");
-
-                return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
 
             return RedirectToAction("Index", new { trainerId = availability.TrainerId });

@@ -19,7 +19,7 @@ namespace FitnessCenterProject.Models
         public int ServiceId { get; set; }
         public Service? Service { get; set; }
 
-        [Required(ErrorMessage = "Tarih seçilmelidir.")]
+        [Required(ErrorMessage = "Tarih ve saat seçilmelidir.")]
         [Display(Name = "Randevu Tarihi")]
         public DateTime StartDate { get; set; }
 

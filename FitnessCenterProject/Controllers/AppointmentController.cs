@@ -45,25 +45,44 @@ namespace FitnessCenterProject.Controllers
             }
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Approve(int id)
+        [HttpGet]
+        public async Task<IActionResult> Create()
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment != null)
+            ViewBag.Services = await _context.Services.ToListAsync();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Appointment appointment, DateTime tarih, string saat)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            appointment.AppUserId = user.Id;
+            appointment.Status = "Pending";
+            appointment.CreatedDate = DateTime.Now;
+
+            if (TimeSpan.TryParse(saat, out TimeSpan zaman))
             {
-                appointment.Status = "Confirmed";
-                await _context.SaveChangesAsync();
+                appointment.StartDate = tarih.Date.Add(zaman);
             }
-            return RedirectToAction("Index");
+
+            if (ModelState.IsValid)
+            {
+                _context.Add(appointment);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.Services = await _context.Services.ToListAsync();
+            return View(appointment);
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
-
             var user = await _userManager.GetUserAsync(User);
+
             if (appointment != null)
             {
                 if (!User.IsInRole("Admin") && appointment.AppUserId != user.Id)
@@ -77,102 +96,82 @@ namespace FitnessCenterProject.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Create()
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Approve(int id)
         {
-            ViewBag.Services = await _context.Services.ToListAsync();
-            ViewBag.Trainers = await _context.Trainers.ToListAsync();
-
-            return View();
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment != null)
+            {
+                appointment.Status = "Confirmed";
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Appointment appointment)
+        [HttpGet]
+        public async Task<JsonResult> GetTrainersByService(int serviceId)
         {
-            ViewBag.Services = await _context.Services.ToListAsync();
-            ViewBag.Trainers = await _context.Trainers.ToListAsync();
+            var trainers = await _context.Trainers
+                .Where(t => t.TrainerServices.Any(ts => ts.ServiceId == serviceId))
+                .Select(t => new { t.Id, t.FullName })
+                .ToListAsync();
 
-            var user = await _userManager.GetUserAsync(User);
-            appointment.AppUserId = user.Id;
-            appointment.Status = "Pending";
-            appointment.CreatedDate = DateTime.Now;
+            return Json(trainers);
+        }
 
-            if (appointment.StartDate < DateTime.Now)
-            {
-                ModelState.AddModelError("", "Geçmiş bir tarihe randevu alamazsınız.");
-                return View(appointment);
-            }
-
-            bool dersVeriyorMu = await _context.TrainerServices
-                                               .AnyAsync(x => x.TrainerId == appointment.TrainerId &&
-                                                              x.ServiceId == appointment.ServiceId);
-            if (!dersVeriyorMu)
-            {
-                ModelState.AddModelError("", "Seçilen eğitmen bu hizmeti vermemektedir.");
-                return View(appointment);
-            }
-
+        [HttpGet]
+        [HttpGet]
+        public async Task<JsonResult> GetAvailableSlots(int trainerId, int serviceId, DateTime date)
+        {
             var gunler = new Dictionary<DayOfWeek, string>
+    {
+        { DayOfWeek.Monday, "Pazartesi" }, { DayOfWeek.Tuesday, "Salı" },
+        { DayOfWeek.Wednesday, "Çarşamba" }, { DayOfWeek.Thursday, "Perşembe" },
+        { DayOfWeek.Friday, "Cuma" }, { DayOfWeek.Saturday, "Cumartesi" },
+        { DayOfWeek.Sunday, "Pazar" }
+    };
+            string gunAdi = gunler[date.DayOfWeek];
+
+            var mesai = await _context.TrainerAvailabilities
+                                      .FirstOrDefaultAsync(t => t.TrainerId == trainerId && t.DayOfWeek == gunAdi);
+
+            if (mesai == null) return Json(new List<string>());
+
+            var service = await _context.Services.FindAsync(serviceId);
+            if (service == null) return Json(new List<string>());
+            int sure = service.Duration;
+
+            var doluRandevular = await _context.Appointments
+                                               .Include(a => a.Service)
+                                               .Where(a => a.TrainerId == trainerId &&
+                                                           a.StartDate.Date == date.Date &&
+                                                           a.Status != "Cancelled")
+                                               .ToListAsync();
+
+            var slotlar = new List<string>();
+            TimeSpan suankiZaman = mesai.StartTime;
+
+            while (suankiZaman.Add(TimeSpan.FromMinutes(sure)) <= mesai.EndTime)
             {
-                { DayOfWeek.Monday, "Pazartesi" },
-                { DayOfWeek.Tuesday, "Salı" },
-                { DayOfWeek.Wednesday, "Çarşamba" },
-                { DayOfWeek.Thursday, "Perşembe" },
-                { DayOfWeek.Friday, "Cuma" },
-                { DayOfWeek.Saturday, "Cumartesi" },
-                { DayOfWeek.Sunday, "Pazar" }
-            };
-            string secilenGun = gunler[appointment.StartDate.DayOfWeek];
+                TimeSpan bitisZamani = suankiZaman.Add(TimeSpan.FromMinutes(sure));
 
-            var calismaSaati = await _context.TrainerAvailabilities
-                                             .FirstOrDefaultAsync(x => x.TrainerId == appointment.TrainerId &&
-                                                                       x.DayOfWeek == secilenGun);
-
-            if (calismaSaati == null)
-            {
-                ModelState.AddModelError("", $"Eğitmen {secilenGun} günü çalışmamaktadır.");
-                return View(appointment);
-            }
-
-            var service = await _context.Services.FindAsync(appointment.ServiceId);
-            if (service == null) return NotFound();
-
-            TimeSpan baslangic = appointment.StartDate.TimeOfDay;
-            TimeSpan bitis = baslangic.Add(TimeSpan.FromMinutes(service.Duration));
-
-            if (baslangic < calismaSaati.StartTime || bitis > calismaSaati.EndTime)
-            {
-                ModelState.AddModelError("", $"Eğitmen bu saatlerde müsait değil. (Çalışma Saatleri: {calismaSaati.StartTime.ToString(@"hh\:mm")} - {calismaSaati.EndTime.ToString(@"hh\:mm")})");
-                return View(appointment);
-            }
-
-            var cakismaVarMi = await _context.Appointments
-                .Include(a => a.Service)
-                .AnyAsync(a =>
-                    a.TrainerId == appointment.TrainerId &&
-                    a.StartDate.Date == appointment.StartDate.Date &&
-                    a.Status != "Cancelled" &&
-                    (
-                        a.StartDate.TimeOfDay < bitis &&
-                        a.StartDate.TimeOfDay.Add(TimeSpan.FromMinutes(a.Service.Duration)) > baslangic
-                    )
+                bool cakisma = doluRandevular.Any(a =>
+                    (a.StartDate.TimeOfDay < bitisZamani) &&
+                    (a.StartDate.TimeOfDay.Add(TimeSpan.FromMinutes(a.Service.Duration)) > suankiZaman)
                 );
 
-            if (cakismaVarMi)
-            {
-                ModelState.AddModelError("", "Seçilen saatte eğitmenin başka bir randevusu mevcut.");
-                return View(appointment);
+                bool gecmis = (date.Date == DateTime.Today && suankiZaman < DateTime.Now.TimeOfDay);
+
+                if (!cakisma && !gecmis)
+                {
+                    slotlar.Add(suankiZaman.ToString(@"hh\:mm"));
+                }
+
+                suankiZaman = suankiZaman.Add(TimeSpan.FromMinutes(sure));
             }
 
-            if (ModelState.IsValid)
-            {
-                _context.Add(appointment);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(appointment);
+            return Json(slotlar);
         }
     }
 }

@@ -3,6 +3,7 @@
 @{
     var trainer = ViewBag.Trainer as FitnessCenterProject.Models.Trainer;
     ViewData["Title"] = "Çalışma Saatleri";
+    var gunler = new List<string> { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
 }
 
 <div class="container mt-4">
@@ -27,14 +28,15 @@
                         <div class="mb-3">
                             <label class="form-label">Gün</label>
                             <select name="DayOfWeek" class="form-select" required>
-                                <!- Döngü veya tek tek optionların içine şu mantığı kuracağız ->
-                                @{
-                                    string[] gunler = { "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar" };
-                                    foreach (var gun in gunler)
+                                @foreach (var gun in gunler)
+                                {
+                                    if (ViewBag.LastDay != null && (string)ViewBag.LastDay == gun)
                                     {
-                                        var seciliMi = (ViewBag.SelectedDay as string) == gun ? "selected" : "";
-                                        <!option value="@gun" @seciliMi>@gun</!option> 
-                                        <option value="@gun" @seciliMi>@gun</option>
+                                        <option value="@gun" selected>@gun</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@gun">@gun</option>
                                     }
                                 }
                             </select>
@@ -45,8 +47,26 @@
                             <select name="StartTime" class="form-select" required>
                                 @for (int i = 8; i <= 22; i++)
                                 {
-                                    <option value="@i.ToString("00"):00">@i.ToString("00"):00</option>
-                                    <option value="@i.ToString("00"):30">@i.ToString("00"):30</option>
+                                    string t1 = i.ToString("00") + ":00";
+                                    string t2 = i.ToString("00") + ":30";
+
+                                    if (ViewBag.LastStart != null && (string)ViewBag.LastStart == t1)
+                                    {
+                                        <option value="@t1" selected>@t1</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@t1">@t1</option>
+                                    }
+
+                                    if (ViewBag.LastStart != null && (string)ViewBag.LastStart == t2)
+                                    {
+                                        <option value="@t2" selected>@t2</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@t2">@t2</option>
+                                    }
                                 }
                             </select>
                         </div>
@@ -56,8 +76,26 @@
                             <select name="EndTime" class="form-select" required>
                                 @for (int i = 9; i <= 23; i++)
                                 {
-                                    <option value="@i.ToString("00"):00">@i.ToString("00"):00</option>
-                                    <option value="@i.ToString("00"):30">@i.ToString("00"):30</option>
+                                    string t1 = i.ToString("00") + ":00";
+                                    string t2 = i.ToString("00") + ":30";
+
+                                    if (ViewBag.LastEnd != null && (string)ViewBag.LastEnd == t1)
+                                    {
+                                        <option value="@t1" selected>@t1</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@t1">@t1</option>
+                                    }
+
+                                    if (ViewBag.LastEnd != null && (string)ViewBag.LastEnd == t2)
+                                    {
+                                        <option value="@t2" selected>@t2</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@t2">@t2</option>
+                                    }
                                 }
                             </select>
                         </div>

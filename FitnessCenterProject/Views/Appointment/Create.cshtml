@@ -6,44 +6,47 @@
 
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-success text-white">
-                    <h4>Yeni Randevu Al</h4>
+                    <h4>Randevu Sihirbazı</h4>
                 </div>
                 <div class="card-body">
                     <form asp-action="Create" method="post">
 
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <div class="mb-3">
                             <label class="form-label">Hizmet Seçiniz</label>
-                            <select asp-for="ServiceId" class="form-select"
+                            <select asp-for="ServiceId" id="ServiceId" class="form-select"
                                     asp-items="@(new SelectList(ViewBag.Services, "Id", "Name"))">
                                 <option value="">-- Hizmet Seç --</option>
                             </select>
-                            <span asp-validation-for="ServiceId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Eğitmen Seçiniz</label>
-                            <select asp-for="TrainerId" class="form-select"
-                                    asp-items="@(new SelectList(ViewBag.Trainers, "Id", "FullName"))">
-                                <option value="">-- Eğitmen Seç --</option>
+                            <select asp-for="TrainerId" id="TrainerId" class="form-select" disabled>
+                                <option value="">-- Önce Hizmet Seçiniz --</option>
                             </select>
-                            <span asp-validation-for="TrainerId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tarih ve Saat</label>
-                            <input asp-for="StartDate" class="form-control" type="datetime-local"
-                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
-                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                            <label class="form-label">Tarih</label>
+                            <input type="date" name="tarih" id="TarihSecimi" class="form-control"
+                                   min="@DateTime.Now.ToString("yyyy-MM-dd")" disabled />
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">Randevu Oluştur</button>
-                            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+                        <div class="mb-3">
+                            <label class="form-label">Müsait Saatler</label>
+                            <div id="SaatKutusu" class="d-flex flex-wrap gap-2 p-2 border rounded bg-light">
+                                <span class="text-muted small">Lütfen yukarıdaki seçimleri yapınız.</span>
+                            </div>
+                            <input type="hidden" name="saat" id="SecilenSaat" required />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success" id="btnKaydet" disabled>Randevuyu Onayla</button>
                         </div>
                     </form>
                 </div>
@@ -53,7 +56,68 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script>
+        $(document).ready(function () {
+            $('#ServiceId').change(function () {
+                var serviceId = $(this).val();
+                var trainerDropdown = $('#TrainerId');
+
+                trainerDropdown.empty().append('<option value="">-- Yükleniyor --</option>');
+                $('#TarihSecimi').prop('disabled', true).val('');
+                $('#SaatKutusu').html('<span class="text-muted small">Eğitmen ve tarih seçiniz.</span>');
+                $('#btnKaydet').prop('disabled', true);
+
+                if (serviceId) {
+                    $.getJSON('/Appointment/GetTrainersByService', { serviceId: serviceId }, function (data) {
+                        trainerDropdown.empty().append('<option value="">-- Eğitmen Seç --</option>');
+                        $.each(data, function (index, item) {
+                            trainerDropdown.append('<option value="' + item.id + '">' + item.fullName + '</option>');
+                        });
+                        trainerDropdown.prop('disabled', false);
+                    });
+                } else {
+                    trainerDropdown.empty().append('<option value="">-- Önce Hizmet Seçiniz --</option>');
+                    trainerDropdown.prop('disabled', true);
+                }
+            });
+
+            $('#TrainerId').change(function () {
+                if ($(this).val()) {
+                    $('#TarihSecimi').prop('disabled', false);
+                } else {
+                    $('#TarihSecimi').prop('disabled', true);
+                }
+            });
+
+            $('#TarihSecimi').change(function () {
+                var trainerId = $('#TrainerId').val();
+                var serviceId = $('#ServiceId').val();
+                var date = $(this).val();
+                var saatKutusu = $('#SaatKutusu');
+
+                saatKutusu.html('<span class="text-info">Müsaitlik kontrol ediliyor...</span>');
+                $('#btnKaydet').prop('disabled', true);
+
+                if (trainerId && serviceId && date) {
+                    $.getJSON('/Appointment/GetAvailableSlots', { trainerId: trainerId, serviceId: serviceId, date: date }, function (data) {
+                        saatKutusu.empty();
+                        if (data.length === 0) {
+                            saatKutusu.html('<span class="text-danger fw-bold">Bu tarihte uygun saat bulunamadı.</span>');
+                        } else {
+                            $.each(data, function (index, time) {
+                                var btn = $('<button type="button" class="btn btn-outline-primary slot-btn m-1">' + time + '</button>');
+                                btn.click(function () {
+                                    $('.slot-btn').removeClass('active btn-primary').addClass('btn-outline-primary');
+                                    $(this).removeClass('btn-outline-primary').addClass('active btn-primary');
+                                    $('#SecilenSaat').val(time);
+                                    $('#btnKaydet').prop('disabled', false);
+                                });
+                                saatKutusu.append(btn);
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 }
