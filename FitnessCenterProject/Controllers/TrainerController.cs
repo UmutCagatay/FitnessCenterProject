@@ -1,8 +1,8 @@
-﻿using FitnessCenterProject.Data;
-using FitnessCenterProject.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FitnessCenterProject.Data;
+using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
@@ -19,9 +19,9 @@ namespace FitnessCenterProject.Controllers
         public async Task<IActionResult> Index()
         {
             var trainers = await _context.Trainers
-                                         .Include(t => t.TrainerServices)
-                                         .ThenInclude(ts => ts.Service)
-                                         .ToListAsync();
+                                 .Include(t => t.TrainerServices)
+                                 .ThenInclude(ts => ts.Service)
+                                 .ToListAsync();
             return View(trainers);
         }
 
@@ -40,7 +40,6 @@ namespace FitnessCenterProject.Controllers
                 if (file != null)
                 {
                     string dosyaAdi = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-
                     string yol = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/trainers", dosyaAdi);
 
                     using (var stream = new FileStream(yol, FileMode.Create))
@@ -53,7 +52,7 @@ namespace FitnessCenterProject.Controllers
 
                 _context.Add(trainer);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             return View(trainer);
         }
@@ -122,15 +121,17 @@ namespace FitnessCenterProject.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
+
             var trainer = await _context.Trainers.FindAsync(id);
             if (trainer == null) return NotFound();
+
             return View(trainer);
         }
 
@@ -144,7 +145,7 @@ namespace FitnessCenterProject.Controllers
                 _context.Trainers.Remove(trainer);
                 await _context.SaveChangesAsync();
             }
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

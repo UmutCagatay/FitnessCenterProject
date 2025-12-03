@@ -39,10 +39,10 @@ namespace FitnessCenterProject.Controllers
             string prompt = $"Danışan Profili: {yas} yaşında, {kilo} kg ağırlığında, {boy} cm boyunda. Hedef: {hedef}. " +
                             $"Bu kişi için haftalık egzersiz ve beslenme tavsiyesi hazırla. " +
                             $"Kurallar: " +
-                            $"1. Asla 'Merhaba Ben' deme. Direkt 'Merhaba!' veya 'Harika bir hedef!' diye başla. " +
+                            $"1. Asla 'Merhaba Ben' deme. Direkt konuya gir. " +
                             $"2. Cevabı saf HTML formatında ver (Başlıklar için <h4>, kalın yazılar için <strong>, listeler için <ul> ve <li> etiketlerini kullan). " +
-                            $"3. Asla Markdown sembolleri (###, **, -) kullanma. Sadece HTML etiketleri kullan. " +
-                            $"4. ```html gibi kod blokları içine alma, direkt metni ver.";
+                            $"3. Asla Markdown sembolleri kullanma. Sadece HTML. " +
+                            $"4. Kod bloğu (```) içine alma.";
 
             var requestBody = new
             {
@@ -67,9 +67,7 @@ namespace FitnessCenterProject.Controllers
                 {
                     var geminiResponse = JsonSerializer.Deserialize<GeminiApiResponse>(responseString);
                     string aiResult = geminiResponse?.Candidates?[0]?.Content?.Parts?[0]?.Text ?? "Cevap alınamadı.";
-
                     aiResult = aiResult.Replace("```html", "").Replace("```", "");
-
                     return Json(new { success = true, message = aiResult });
                 }
                 else

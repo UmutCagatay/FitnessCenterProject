@@ -22,16 +22,17 @@ namespace FitnessCenterProject.Controllers
             var trainer = await _context.Trainers.FindAsync(trainerId);
             if (trainer == null) return NotFound();
 
-            var list = await _context.TrainerAvailabilities
-                                     .Where(x => x.TrainerId == trainerId)
-                                     .ToListAsync();
+            var saatler = await _context.TrainerAvailabilities
+                                        .Where(x => x.TrainerId == trainerId)
+                                        .ToListAsync();
 
             ViewBag.Trainer = trainer;
-            ViewBag.LastDay = TempData["LastDay"];
-            ViewBag.LastStart = TempData["LastStart"];
-            ViewBag.LastEnd = TempData["LastEnd"];
 
-            return View(list);
+            ViewBag.SeciliGun = TempData["SonGun"];
+            ViewBag.SeciliBaslangic = TempData["SonBaslangic"];
+            ViewBag.SeciliBitis = TempData["SonBitis"];
+
+            return View(saatler);
         }
 
         [HttpPost]
@@ -41,15 +42,19 @@ namespace FitnessCenterProject.Controllers
             if (availability.EndTime <= availability.StartTime)
             {
                 TempData["Error"] = "Bitiş saati, başlangıç saatinden sonra olmalıdır.";
+                return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
-            else if (ModelState.IsValid)
+
+            if (ModelState.IsValid)
             {
                 _context.TrainerAvailabilities.Add(availability);
                 await _context.SaveChangesAsync();
 
-                TempData["LastDay"] = availability.DayOfWeek;
-                TempData["LastStart"] = availability.StartTime.ToString(@"hh\:mm");
-                TempData["LastEnd"] = availability.EndTime.ToString(@"hh\:mm");
+                TempData["SonGun"] = availability.DayOfWeek;
+                TempData["SonBaslangic"] = availability.StartTime.ToString(@"hh\:mm");
+                TempData["SonBitis"] = availability.EndTime.ToString(@"hh\:mm");
+
+                return RedirectToAction("Index", new { trainerId = availability.TrainerId });
             }
 
             return RedirectToAction("Index", new { trainerId = availability.TrainerId });

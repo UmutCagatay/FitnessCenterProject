@@ -1,8 +1,8 @@
-﻿using FitnessCenterProject.Data;
-using FitnessCenterProject.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FitnessCenterProject.Data;
+using FitnessCenterProject.Models;
 
 namespace FitnessCenterProject.Controllers
 {
@@ -36,7 +36,7 @@ namespace FitnessCenterProject.Controllers
             {
                 _context.Add(service);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             return View(service);
         }
@@ -60,7 +60,7 @@ namespace FitnessCenterProject.Controllers
             {
                 _context.Update(service);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
             return View(service);
         }
@@ -86,7 +86,7 @@ namespace FitnessCenterProject.Controllers
                 _context.Services.Remove(service);
                 await _context.SaveChangesAsync();
             }
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

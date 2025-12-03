@@ -25,23 +25,23 @@ namespace FitnessCenterProject.Controllers
 
             if (User.IsInRole("Admin"))
             {
-                var allAppointments = await _context.Appointments
-                                                    .Include(a => a.Trainer)
-                                                    .Include(a => a.Service)
-                                                    .Include(a => a.AppUser)
-                                                    .OrderByDescending(a => a.StartDate)
-                                                    .ToListAsync();
-                return View(allAppointments);
+                var all = await _context.Appointments
+                                        .Include(a => a.Trainer)
+                                        .Include(a => a.Service)
+                                        .Include(a => a.AppUser)
+                                        .OrderByDescending(a => a.StartDate)
+                                        .ToListAsync();
+                return View(all);
             }
             else
             {
-                var myAppointments = await _context.Appointments
-                                                   .Where(a => a.AppUserId == user.Id)
-                                                   .Include(a => a.Trainer)
-                                                   .Include(a => a.Service)
-                                                   .OrderByDescending(a => a.StartDate)
-                                                   .ToListAsync();
-                return View(myAppointments);
+                var mine = await _context.Appointments
+                                         .Where(a => a.AppUserId == user.Id)
+                                         .Include(a => a.Trainer)
+                                         .Include(a => a.Service)
+                                         .OrderByDescending(a => a.StartDate)
+                                         .ToListAsync();
+                return View(mine);
             }
         }
 
@@ -121,16 +121,15 @@ namespace FitnessCenterProject.Controllers
         }
 
         [HttpGet]
-        [HttpGet]
         public async Task<JsonResult> GetAvailableSlots(int trainerId, int serviceId, DateTime date)
         {
             var gunler = new Dictionary<DayOfWeek, string>
-    {
-        { DayOfWeek.Monday, "Pazartesi" }, { DayOfWeek.Tuesday, "Salı" },
-        { DayOfWeek.Wednesday, "Çarşamba" }, { DayOfWeek.Thursday, "Perşembe" },
-        { DayOfWeek.Friday, "Cuma" }, { DayOfWeek.Saturday, "Cumartesi" },
-        { DayOfWeek.Sunday, "Pazar" }
-    };
+            {
+                { DayOfWeek.Monday, "Pazartesi" }, { DayOfWeek.Tuesday, "Salı" },
+                { DayOfWeek.Wednesday, "Çarşamba" }, { DayOfWeek.Thursday, "Perşembe" },
+                { DayOfWeek.Friday, "Cuma" }, { DayOfWeek.Saturday, "Cumartesi" },
+                { DayOfWeek.Sunday, "Pazar" }
+            };
             string gunAdi = gunler[date.DayOfWeek];
 
             var mesai = await _context.TrainerAvailabilities
@@ -149,7 +148,7 @@ namespace FitnessCenterProject.Controllers
                                                            a.Status != "Cancelled")
                                                .ToListAsync();
 
-            var slotlar = new List<string>();
+            var musaitSlotlar = new List<string>();
             TimeSpan suankiZaman = mesai.StartTime;
 
             while (suankiZaman.Add(TimeSpan.FromMinutes(sure)) <= mesai.EndTime)
@@ -161,17 +160,17 @@ namespace FitnessCenterProject.Controllers
                     (a.StartDate.TimeOfDay.Add(TimeSpan.FromMinutes(a.Service.Duration)) > suankiZaman)
                 );
 
-                bool gecmis = (date.Date == DateTime.Today && suankiZaman < DateTime.Now.TimeOfDay);
+                bool gecmisZaman = (date.Date == DateTime.Today && suankiZaman < DateTime.Now.TimeOfDay);
 
-                if (!cakisma && !gecmis)
+                if (!cakisma && !gecmisZaman)
                 {
-                    slotlar.Add(suankiZaman.ToString(@"hh\:mm"));
+                    musaitSlotlar.Add(suankiZaman.ToString(@"hh\:mm"));
                 }
 
                 suankiZaman = suankiZaman.Add(TimeSpan.FromMinutes(sure));
             }
 
-            return Json(slotlar);
+            return Json(musaitSlotlar);
         }
     }
 }

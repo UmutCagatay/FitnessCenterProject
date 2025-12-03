@@ -1,8 +1,82 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model FitnessCenterProject.Models.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="bg-light p-5 rounded-3 mb-5 text-center shadow-sm">
+    <h1 class="display-4 fw-bold text-primary">Fitness Center'a Hoşgeldiniz</h1>
+    <p class="lead text-muted">Sağlıklı bir yaşam için profesyonel destek alın.</p>
+    <hr class="my-4">
+    <p>Yapay zeka destekli analizler, uzman antrenörler ve size özel programlar.</p>
+
+    <div class="d-flex justify-content-center gap-3">
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <a class="btn btn-primary btn-lg px-4" asp-controller="Account" asp-action="Register">Hemen Üye Ol</a>
+            <a class="btn btn-outline-secondary btn-lg px-4" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+        }
+        else
+        {
+            <a class="btn btn-success btn-lg px-4" asp-controller="Appointment" asp-action="Create">Randevu Al</a>
+            <a class="btn btn-info btn-lg px-4 text-white" asp-controller="AI" asp-action="Index">Yapay Zekadan Tavsiye Al</a>
+        }
+    </div>
+</div>
+
+<div class="mb-5">
+    <h2 class="text-center mb-4 border-bottom pb-2">Hizmetlerimiz</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var item in Model.Services)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span>Resim Yok</span>
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">@item.Name</h5>
+                        <p class="card-text text-muted">Süre: @item.Duration dk</p>
+                        <h6 class="text-primary fw-bold">@item.Price ₺</h6>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mb-5">
+    <h2 class="text-center mb-4 border-bottom pb-2">Uzman Eğitmenlerimiz</h2>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var item in Model.Trainers)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 text-center">
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="/images/trainers/@item.ImageUrl" class="rounded-circle mb-3 border border-3 border-light shadow-sm"
+                                 style="width: 120px; height: 120px; object-fit: cover;" alt="@item.FullName">
+                        }
+                        else
+                        {
+                            <div class="rounded-circle mb-3 bg-light d-inline-flex align-items-center justify-content-center border"
+                                 style="width: 120px; height: 120px;">
+                                <span class="text-muted">Foto Yok</span>
+                            </div>
+                        }
+                        <h5 class="card-title">@item.FullName</h5>
+                        <p class="card-text text-info small fw-bold">@item.Specialization</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
