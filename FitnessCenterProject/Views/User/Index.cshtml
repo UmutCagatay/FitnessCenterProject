@@ -1,0 +1,43 @@
+﻿@model IEnumerable<FitnessCenterProject.Models.AppUser>
+
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+}
+
+<div class="container mt-4">
+    <h2>Kullanıcı Listesi</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Ad Soyad</th>
+                <th>Email</th>
+                <th>Kullanıcı Adı</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.FirstName @user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.UserName</td>
+                    <td>
+                        @if (user.UserName != "g201210029@sakarya.edu.tr")
+                        {
+                            <form asp-action="Delete" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@user.Id" />
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bu kullanıcıyı silmek istediğine emin misin?');">Sil</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Yönetici</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

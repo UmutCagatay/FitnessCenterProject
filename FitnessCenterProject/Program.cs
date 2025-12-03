@@ -11,21 +11,27 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Şifre kurallarını basitleştirme
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    options.Password.RequireDigit = false; // Sayı zorunluluğu yok
-    options.Password.RequireLowercase = false; // Küçük harf zorunluluğu yok
-    options.Password.RequireUppercase = false; // Büyük harf zorunluluğu yok
-    options.Password.RequireNonAlphanumeric = false; // Sembol zorunluluğu yok
-    options.Password.RequiredLength = 3; // En az 3 karakter olsun ("sau" için gerekli)
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 3;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.Cookie.Name = "FitnessAuth_" + Guid.NewGuid().ToString();
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+    options.SlidingExpiration = true;
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

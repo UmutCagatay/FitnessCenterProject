@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FitnessCenterProject.Data;
+﻿using FitnessCenterProject.Data;
 using FitnessCenterProject.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitnessCenterProject.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AvailabilityController : Controller
     {
         private readonly ApplicationDbContext _context;
