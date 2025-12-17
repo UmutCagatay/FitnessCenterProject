@@ -1,4 +1,4 @@
-# 🏋️‍♂️ Fitness Center Yönetim Sistemi
+ # 🏋️‍♂️ Fitness Center Yönetim Sistemi
 
 Bu proje, Web Programlama dersi kapsamında geliştirilmiş bir **Spor Salonu Yönetim ve Randevu Sistemi**dir.
 ASP.NET Core 8 MVC teknolojisi kullanılarak, modern web standartlarına uygun olarak tasarlanmıştır.
